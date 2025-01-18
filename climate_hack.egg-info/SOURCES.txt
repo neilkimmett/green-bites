@@ -1,0 +1,6 @@
+pyproject.toml
+climate_hack.egg-info/PKG-INFO
+climate_hack.egg-info/SOURCES.txt
+climate_hack.egg-info/dependency_links.txt
+climate_hack.egg-info/requires.txt
+climate_hack.egg-info/top_level.txt
