@@ -19,6 +19,29 @@ function App() {
   const [data, setData] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Add this function to handle search
+  const handleSearch = async (term) => {
+    try {
+      // const response = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+      // const results = await response.json();
+      console.log('Searching for:', term);
+      // Do something with the results if needed
+    } catch (error) {
+      console.error('Search error:', error);
+    }
+  };
+
+  // Add debounced search to avoid too many API calls
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm.trim()) {
+        handleSearch(searchTerm);
+      }
+    }, 500); // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
   // Load CSV data
   useEffect(() => {
     console.log('Attempting to fetch data...');
@@ -62,16 +85,17 @@ function App() {
     radiusScale: 10,
     radiusMinPixels: 5,
     radiusMaxPixels: 50,
-    lineWidthMinPixels: 1,
     getPosition: (d) => d.coordinates,
-    getRadius: 5,
     getFillColor: (d) => {
+      // Scale from red (0) through yellow/orange (50) to green (100)
       const score = d.value;
       let r, g;
       if (score <= 50) {
+        // Red to Yellow (0-50)
         r = 255;
         g = Math.max(0, Math.min(255, 255 * (score/50)));
       } else {
+        // Yellow to Green (51-100)
         r = Math.max(0, Math.min(255, 255 * (2 - score/50)));
         g = 255;
       }
