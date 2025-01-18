@@ -17,6 +17,7 @@ const INITIAL_VIEW_STATE = {
 
 function App() {
   const [data, setData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Load CSV data
   useEffect(() => {
@@ -61,21 +62,23 @@ function App() {
     radiusScale: 10,
     radiusMinPixels: 5,
     radiusMaxPixels: 50,
+    lineWidthMinPixels: 1,
     getPosition: (d) => d.coordinates,
+    getRadius: 5,
     getFillColor: (d) => {
-      // Scale from red (0) through yellow/orange (50) to green (100)
       const score = d.value;
       let r, g;
       if (score <= 50) {
-        // Red to Yellow (0-50)
         r = 255;
         g = Math.max(0, Math.min(255, 255 * (score/50)));
       } else {
-        // Yellow to Green (51-100)
         r = Math.max(0, Math.min(255, 255 * (2 - score/50)));
         g = 255;
       }
-      return [r, g, 0, 200]; // Using blue=0 to create red-yellow-green spectrum
+      return [r, g, 0, 200];
+    },
+    onHover: (info) => {
+      console.log('Hover:', info.object); // Debug hover events
     }
   });
 
@@ -87,43 +90,65 @@ function App() {
         left: 0,
         right: 0,
         zIndex: 1,
-        background: 'linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0))',
+        background: '#0a2f1c', // Darker green background
         padding: '20px',
-        color: 'white',
-        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        color: '#e0f2e9', // Light green text
+        fontFamily: '"Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
       }}>
         <h1 style={{ 
           margin: 0,
           fontSize: '2.5em',
-          fontWeight: '600'
+          fontWeight: '600',
+          color: '#4ade80' // Bright green title
         }}>
-          NYC Restaurant Grades
+          Green Bites
         </h1>
-        <p style={{
-          margin: '8px 0 0 0',
-          fontSize: '1.1em',
-          opacity: 0.9
+
+        <div style={{
+          position: 'relative',
+          marginBottom: '16px'
         }}>
-          Explore Energy Star Scores for NYC Restaurants
-        </p>
+          <input
+            type="text"
+            placeholder="Search restaurants..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px',
+              fontSize: '1em',
+              border: '1px solid #4ade80', // Green border
+              borderRadius: '4px',
+              backgroundColor: '#133527', // Darker green background
+              color: '#e0f2e9', // Light green text
+              outline: 'none',
+              boxSizing: 'border-box',
+              '::placeholder': {
+                color: '#88c4a3' // Muted green for placeholder
+              }
+            }}
+          />
+        </div>
       </div>
       <DeckGL
         initialViewState={INITIAL_VIEW_STATE}
         controller={true}
         layers={[scatterplotLayer]}
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-        getTooltip={({object}) => object && {
-          html: `
-            <div style="padding: 8px">
-              <p><h3>${object.name}</h3></p>
-              <p><b>Score:</b> ${object.value}</p>
-              <p><b>Grade:</b> ${object.letterScore}</p>
-            </div>
-          `,
-          style: {
-            backgroundColor: '#fff',
-            fontSize: '0.8em'
+        pickingRadius={10}
+        getCursor={({isHovering}) => isHovering ? 'pointer' : 'grab'}
+        onHover={(info) => {
+          console.log('DeckGL Hover:', info.object); // Debug hover events
+        }}
+        getTooltip={({object}) => {
+          if (!object) {
+            return null;
           }
+          console.log('Tooltip object:', object); // Debug tooltip
+          return {
+            text: `${object.name}\nScore: ${object.value}\nGrade: ${object.letterScore}`
+          };
         }}
       >
         <Map
